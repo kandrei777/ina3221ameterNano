@@ -7,6 +7,7 @@
 
 // SDL_Arduino_INA3221 Library: https://github.com/switchdoclabs/SDL_Arduino_INA3221
 #include "SDL_Arduino_INA3221.h"
+// Alternative: https://github.com/beast-devices/Arduino-INA3221/blob/main/Beastdevices_INA3221.h
 
 #define DISPLAY_ADA
 
@@ -47,7 +48,7 @@ struct channel_t
 #define OPT_B_LOG 1
 
 boolean sUseDisplay; // Is the a display found.
-uint8_t sCycle; // Measure counter before display.
+uint8_t sCycle;      // Measure counter before display.
 uint32_t sLastMeasureTime;
 uint32_t sNextMeasureTime;
 
@@ -55,7 +56,7 @@ void setup(void)
 {
   // Init serial
   Serial.begin(115200);
-  Serial.println("# " VERSION_STR);
+  Serial.println(F("# " VERSION_STR));
 
   // Init display
 #ifdef DISPLAY_ADA
@@ -131,15 +132,22 @@ void measure()
 
     ch->capacity += (double)(current_mA * passed) / (3600.0 * 1000.0);
     ch->avgI_sum += current_mA;
-  } // Measure
+  } // Measure channels
 
   sCycle++;
 
   // Check if it is the time to dump.
   if (sCycle >= DISPLAY_EVERY)
   {
-    oled.clearDisplay();
-    oled.setCursor(0, 0);
+
+#ifdef DISPLAY_ADA
+    if (sUseDisplay)
+    {
+      oled.clearDisplay();
+      oled.setCursor(0, 0);
+    }
+#endif // DISPLAY_ADA
+
     for (uint8_t i = 0; i < CHANNELS; i++)
     {
       auto ch = &channels[i];
@@ -162,6 +170,7 @@ void measure()
         Serial.print(ch->capacity);
         Serial.println(F(" mAh"));
       }
+
 #ifdef DISPLAY_ADA
       if (sUseDisplay)
       {
@@ -169,12 +178,20 @@ void measure()
         oled.println(F(" mA"));
       }
 #endif // DISPLAY_ADA
-    }  // Dump channel
-    oled.print(F("Time, sec: "));
-    oled.print(Time / 1000);
-    oled.display();
+
+    } // Dump channels
+
+#ifdef DISPLAY_ADA
+    if (sUseDisplay)
+    {
+      oled.print(F("Time: "));
+      oled.print(Time / 1000);
+      oled.display();
+    }  // Display
+#endif // DISPLAY_ADA
+
     sCycle = 0;
-  } // Display
+  } // Display result.
 }
 
 void loop(void)
