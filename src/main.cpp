@@ -174,8 +174,11 @@ void measure()
 #ifdef DISPLAY_ADA
       if (sUseDisplay)
       {
-        oled.print(i_mA);
-        oled.println(F(" mA"));
+        char buff[10];
+        oled.print(dtostrf(i_mA, 6, 1, buff));
+        oled.print(F(" mA "));
+        oled.print(dtostrf(ch->capacity, 7, 1, buff));
+        oled.println(F(" mAh"));
       }
 #endif // DISPLAY_ADA
 
