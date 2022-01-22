@@ -1,5 +1,26 @@
-// stty -F /dev/ttyUSB0 cs8 115200 ignbrk -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke noflsh -ixon -crtscts raw
+/**************************************************************************
+ * This is a 3-channel current logger based on INA3221 module.
+ * 
+ * The logger uses i2c protocol to connect an INA3221 module.
+ * Use default pins i2c pins to connect a module to the board.
+ * These pins are defined in the Wire-library:
+ * On an arduino NANO:      A4(SDA), A5(SCL)
+ * On an arduino UNO:       A4(SDA), A5(SCL)
+ * On an arduino MEGA 2560: 20(SDA), 21(SCL)
+ * On an arduino LEONARDO:   2(SDA),  3(SCL),
+ *
+ * If a INA3221 channel contains non-zero data, it will be added to the Serial 
+ * output.
+ * Use the following command to configure the serial port for reading data.
+ * stty -F /dev/ttyUSB0 cs8 115200 ignbrk -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke noflsh -ixon -crtscts raw
+ * 
+ * Also the board can use a 128x32 pixel display to display instant information.
+ * The display should be connected also connected using i2c communication protocol.
+ * 
+ * Written by Kulik Andrei
+ */
 
+/* Increase version if output has been changed. */
 #define VERSION_STR "Ver: 1"
 
 #include <Arduino.h>
@@ -25,7 +46,7 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 SDL_Arduino_INA3221 ina3221;
 
-// the three channels of the INA3221 named for SunAirPlus Solar Power Controller channels (www.switchdoc.com)
+// the three channels of the INA3221
 #define CHANNELS 3
 #define READ_DELAY 200
 // How often to refresh the display. Refresh time ms = READ_DELAY * DISPLAY_EVERY
@@ -47,8 +68,8 @@ struct channel_t
 // Flag: Log data to the Serial.
 #define OPT_B_LOG 1
 
-boolean sUseDisplay; // Is the a display found.
-uint8_t sCycle;      // Measure counter before display.
+boolean sUseDisplay; // True if the display is found.
+uint8_t sCycle;      // Count iteration before display.
 uint32_t sLastMeasureTime;
 uint32_t sNextMeasureTime;
 
@@ -79,7 +100,7 @@ void setup(void)
   }
 #endif // DISPLAY_ADA
 
-  // Init ina
+  // Init INA3221
   ina3221.begin();
 }
 
